@@ -24,7 +24,6 @@ last_filename = ""
 
 def main(para):
     FLAGS(sys.argv)
-    print(FLAGS)
     with sc2_env.SC2Env(
             map_name="DefeatZerglingsAndBanelings",
             step_mul=step_mul,
