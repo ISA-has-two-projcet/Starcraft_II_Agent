@@ -403,26 +403,46 @@ def marine_action(env, obs, player, action):
             sc2_actions.FunctionCall(_MOVE_SCREEN, [[_NOT_QUEUED], coord])
         ]
 
-    elif action == 4:  # UP
+    elif action == 3:  # UP
         coord = [player[0], player[1] - 3]
         new_action = [
             sc2_actions.FunctionCall(_MOVE_SCREEN, [[_NOT_QUEUED], coord])
         ]
 
-    elif action == 5:  # DOWN
+    elif action == 4:  # DOWN
         coord = [player[0], player[1] + 3]
         new_action = [
             sc2_actions.FunctionCall(_MOVE_SCREEN, [[_NOT_QUEUED], coord])
         ]
 
-    elif action == 6:  # LEFT
+    elif action == 5:  # LEFT
         coord = [player[0] - 3, player[1]]
         new_action = [
             sc2_actions.FunctionCall(_MOVE_SCREEN, [[_NOT_QUEUED], coord])
         ]
 
-    elif action == 7:  # RIGHT
+    elif action == 6:  # RIGHT
         coord = [player[0] + 3, player[1]]
+        new_action = [
+            sc2_actions.FunctionCall(_MOVE_SCREEN, [[_NOT_QUEUED], coord])
+        ]
+    elif action == 7:  # RIGHT UP
+        coord = [player[0] + 3, player[1]-3]
+        new_action = [
+            sc2_actions.FunctionCall(_MOVE_SCREEN, [[_NOT_QUEUED], coord])
+        ]
+    elif action == 8:  # RIGHT DOWN
+        coord = [player[0] + 3, player[1] + 3]
+        new_action = [
+            sc2_actions.FunctionCall(_MOVE_SCREEN, [[_NOT_QUEUED], coord])
+        ]
+    elif action == 9:  # LEFT DOWN
+        coord = [player[0] - 3, player[1] - 3]
+        new_action = [
+            sc2_actions.FunctionCall(_MOVE_SCREEN, [[_NOT_QUEUED], coord])
+        ]
+    elif action == 10:  # LEFT DOWN
+        coord = [player[0] - 3, player[1] + 3]
         new_action = [
             sc2_actions.FunctionCall(_MOVE_SCREEN, [[_NOT_QUEUED], coord])
         ]
