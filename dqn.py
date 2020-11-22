@@ -95,7 +95,7 @@ class Net(nn.Module):
         )
         self.action_out = nn.Linear(256, 256)
         self.relu = nn.ReLU()
-        self.softmax = nn.Softmax()
+        self.softmax = nn.Softmax(dim=1)
         self.action_scores = nn.Linear(256, num_actions)  # fully connected layer, output 10 classes
 
     # (32, 8, 4), (64, 4, 2), (64, 3, 1)
@@ -105,7 +105,8 @@ class Net(nn.Module):
         x = self.conv3(x)
         x = x.view(x.size(0), -1)
         x = self.relu(self.action_out(x))
-        actions_value = self.softmax(self.action_scores(x))
+        x = self.action_scores(x)
+        actions_value = self.softmax(x)
         return actions_value
 
 
@@ -224,7 +225,8 @@ def learn(env,
     checkpoint_path = 'models\\deepq\\checkpoint.pth.tar'
     if os.path.exists(checkpoint_path):
         dqn, saved_mean_reward = load_checkpoint(dqn, cuda, filename=checkpoint_path)
-    for t in range(max_timesteps):
+    t = 0
+    while True:
         # Take action and update exploration to the newest value
         # custom process for DefeatZerglingsAndBanelings
         obs, screen, player = common.select_marine(env, obs)
@@ -287,19 +289,16 @@ def learn(env,
             if prioritized_replay:
                 experience = replay_buffer.sample(
                     batch_size, beta=beta_schedule.value(t))
-                (obses_t, actions, rewards, obses_tp1, dones, weights,
-                 batch_idxes) = experience
+                (obses_t, actions, rewards, obses_tp1, dones, weights, batch_idxes) = experience
             else:
-                obses_t, actions, rewards, obses_tp1, dones = replay_buffer.sample(
-                    batch_size)
+                obses_t, actions, rewards, obses_tp1, dones = replay_buffer.sample(batch_size)
                 weights, batch_idxes = np.ones_like(rewards), None
 
             td_errors = dqn.learn(obses_t, actions, rewards, obses_tp1, gamma, batch_size)
 
             if prioritized_replay:
                 new_priorities = np.abs(td_errors) + prioritized_replay_eps
-                replay_buffer.update_priorities(batch_idxes,
-                                                new_priorities)
+                replay_buffer.update_priorities(batch_idxes, new_priorities)
 
         if t > learning_starts and t % target_network_update_freq == 0:
             # Update target network periodically.
@@ -318,7 +317,7 @@ def learn(env,
                                   int(100 * exploration.value(t)))
             logger.dump_tabular()
 
-        if checkpoint_freq is not None and num_episodes % 200 == 0 and num_episodes > 200:
+        if checkpoint_freq is not None and num_episodes % 100 == 0 and num_episodes > 100:
             if saved_mean_reward is None or mean_100ep_reward > saved_mean_reward:
                 if print_freq is not None:
                     logger.log(
@@ -330,4 +329,8 @@ def learn(env,
                     'state_dict': dqn.save_state_dict(),
                     'best_accuracy': mean_100ep_reward}, checkpoint_path)
                 saved_mean_reward = mean_100ep_reward
+        t += 1
+        if t >= max_timesteps:
+            break
+
 # /output/checkpoint.pth.tar

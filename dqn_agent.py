@@ -22,8 +22,9 @@ max_mean_reward = 0
 last_filename = ""
 
 
-def main():
+def main(para):
     FLAGS(sys.argv)
+    print(FLAGS)
     with sc2_env.SC2Env(
             map_name="DefeatZerglingsAndBanelings",
             step_mul=step_mul,
@@ -31,9 +32,9 @@ def main():
             game_steps_per_episode=steps * step_mul) as env:
         dqn.learn(
             env,
-            num_actions=3,
+            num_actions=11,
             lr=1e-4,
-            max_timesteps=10000000,
+            max_timesteps=int(para[1]),
             buffer_size=100000,
             exploration_fraction=0.5,
             exploration_final_eps=0.01,
@@ -47,4 +48,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    para = sys.argv
+    main(para)
+
+
