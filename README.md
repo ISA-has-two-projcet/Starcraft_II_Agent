@@ -17,4 +17,6 @@ Key words: Deep Q-learning, DQN, Reinforcement learning, StarCraft2, pysc2, PyTo
 
 # USER GUIDE
 
+https://github.com/ISA-has-two-projcet/Starcraft_II_Agent/blob/main/User_Guide/User_Guide.pdf
+
 # PROJECT REPORT / PAPER
