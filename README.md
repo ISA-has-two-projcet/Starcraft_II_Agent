@@ -11,10 +11,11 @@ Key words: Deep Q-learning, DQN, Reinforcement learning, StarCraft2, pysc2, PyTo
 # CREDITS / PROJECT CONTRIBUTION
 | Official Full Name  | Student ID (MTech Applicable)  | Work Items (Who Did What) | Email (Optional) |
 | :------------ |:---------------:| :-----| :-----|
-| Tao Xiyan | A0215472J | todo:contribution | e0535562@u.nus.edu |
-| Xiao Yuchao | A0215486Y | todo:contribution | yuchao_xiao@u.nus.edu |
-| Zhang Zekun | A0215485B | todo:contribution | zhang_zekun@u.nus.edu |
+| Tao Xiyan | A0215472J | Agent env management, Data processing, Model optimization | e0535562@u.nus.edu |
+| Xiao Yuchao | A0215486Y | Overall system implementation | yuchao_xiao@u.nus.edu |
+| Zhang Zekun | A0215485B | Algorithm design and test | zhang_zekun@u.nus.edu |
 
+,algorithm design and documentation
 # USER GUIDE
 
 Refer to appendix User Guide in Doc Folder: ` <a href="https://github.com/ISA-has-two-projcet/Starcraft_II_Agent/blob/main/User_Guide/User_Guide.pdf">click here</a>
