@@ -58,9 +58,7 @@ def load_checkpoint(model, cuda=False, filename=''):
     if cuda:
         checkpoint = torch.load(filename)
     else:
-        checkpoint = torch.load(filename,
-                                map_location=lambda storage,
-                                                    loc: storage)
+        checkpoint = torch.load(filename, map_location=lambda storage, loc: storage)
     best_accuracy = checkpoint['best_accuracy']
     model.load_state_dict(checkpoint['state_dict'])
     print("=> loaded checkpoint '{}' (trained for {} epochs)".format(filename,
@@ -111,7 +109,7 @@ class Net(nn.Module):
 
 
 class DQN(object):
-    def __init__(self, num_actions=3, lr=5e-4, cuda=False):
+    def __init__(self, num_actions=12, lr=5e-4, cuda=False):
         self.eval_net, self.target_net = Net(num_actions), Net(num_actions)
         self.cuda = cuda
         if self.cuda:
@@ -135,6 +133,8 @@ class DQN(object):
             else:
                 action = torch.max(actions_value, 1)[1].data.numpy()
                 action = action[0]
+                # print(actions_value)
+                # print(action)
         else:  # random
             action = np.random.randint(0, self.num_actions)
             action = action
@@ -172,7 +172,7 @@ class DQN(object):
 
 
 def learn(env,
-          num_actions=3,
+          num_actions=12,
           lr=5e-4,
           max_timesteps=100000,
           buffer_size=50000,
@@ -190,7 +190,8 @@ def learn(env,
           prioritized_replay_beta0=0.4,
           prioritized_replay_beta_iters=None,
           prioritized_replay_eps=1e-6,
-          num_cpu=16):
+          num_cpu=16,
+          max_episode = 100):
     torch.set_num_threads(num_cpu)
     if prioritized_replay:
         replay_buffer = PrioritizedReplayBuffer(
@@ -248,7 +249,6 @@ def learn(env,
         except Exception as e:
             new_action = [sc2_actions.FunctionCall(_NO_OP, [])]
             obs = env.step(actions=new_action)
-            print(e)
               # Do nothing
         player_relative = obs[0].observation["screen"][_PLAYER_RELATIVE]
         new_screen = player_relative
@@ -317,20 +317,17 @@ def learn(env,
                                   int(100 * exploration.value(t)))
             logger.dump_tabular()
 
-        if checkpoint_freq is not None and num_episodes % 100 == 0 and num_episodes > 100:
+        if checkpoint_freq is not None and num_episodes % 100 == 0 and num_episodes >= 100:
             if saved_mean_reward is None or mean_100ep_reward > saved_mean_reward:
                 if print_freq is not None:
                     logger.log(
                         "Saving model due to mean reward increase: {} -> {}".format(
                             saved_mean_reward,
                             mean_100ep_reward))
-                save_checkpoint({
-                    'epoch': t + 1,
-                    'state_dict': dqn.save_state_dict(),
-                    'best_accuracy': mean_100ep_reward}, checkpoint_path)
+                save_checkpoint({'epoch': t + 1, 'state_dict': dqn.save_state_dict(), 'best_accuracy': mean_100ep_reward}, checkpoint_path)
                 saved_mean_reward = mean_100ep_reward
         t += 1
-        if t >= max_timesteps:
+        if num_episodes >= max_episode:
             break
 
 # /output/checkpoint.pth.tar
