@@ -22,3 +22,5 @@ Refer to appendix User Guide in Doc Folder: ` <a href="https://github.com/ISA-ha
 
 
 # PROJECT REPORT / PAPER
+
+<a href="https://github.com/ISA-has-two-projcet/Starcraft_II_Agent/blob/main/Report/SLS_project_report.pdf">click here</a>
