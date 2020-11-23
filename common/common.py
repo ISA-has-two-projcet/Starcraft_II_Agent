@@ -10,6 +10,9 @@ _SELECTED = features.SCREEN_FEATURES.selected.index
 _PLAYER_FRIENDLY = 1
 _PLAYER_NEUTRAL = 3  # beacon/minerals
 _PLAYER_HOSTILE = 4
+_MARINE_ID = 48
+_BANELING_ID = 9
+_ZERGLING_ID = 105
 _NO_OP = actions.FUNCTIONS.no_op.id
 _SELECT_UNIT_ID = 1
 
@@ -22,6 +25,7 @@ _ATTACK_SCREEN = actions.FUNCTIONS.Attack_screen.id
 _SELECT_ARMY = actions.FUNCTIONS.select_army.id
 _SELECT_UNIT = actions.FUNCTIONS.select_unit.id
 _SELECT_POINT = actions.FUNCTIONS.select_point.id
+
 
 _NOT_QUEUED = 0
 _SELECT_ALL = 0
@@ -217,6 +221,7 @@ def select_marine(env, obs):
 
     group_list = update_group_list(obs)
 
+
     if check_group_list(env, obs):
         obs, xy_per_marine = init(env, obs)
         group_list = update_group_list(obs)
@@ -228,7 +233,6 @@ def select_marine(env, obs):
     player_relative = obs[0].observation["screen"][_PLAYER_RELATIVE]
 
     friendly_y, friendly_x = (player_relative == _PLAYER_FRIENDLY).nonzero()
-
     enemy_y, enemy_x = (player_relative == _PLAYER_HOSTILE).nonzero()
 
     player = []
@@ -247,7 +251,6 @@ def select_marine(env, obs):
             if not marine_min_dist or dist < marine_min_dist:
                 if dist >= 2:
                     marine_closest, marine_min_dist = p, dist
-
     if danger_min_dist is not None and danger_min_dist <= 5:
         obs = env.step(actions=[
             sc2_actions.FunctionCall(_SELECT_POINT, [[0], danger_closest])
@@ -314,13 +317,29 @@ def marine_action(env, obs, player, action):
 
     enemy_y, enemy_x = (player_relative == _PLAYER_HOSTILE).nonzero()
 
+    unit_type = obs[0].observation["screen"][_UNIT_TYPE]
+    Baneling_y, Baneling_x = (unit_type == _BANELING_ID).nonzero()
+    zergling_y, zergling_x = (unit_type == _ZERGLING_ID).nonzero()
+
     closest, min_dist = None, None
+    closest_baneling, baneling_min_dist = None, None
+    closest_zergling, zergling_min_dist = None, None
 
     if len(player) == 2:
         for p in zip(enemy_x, enemy_y):
             dist = np.linalg.norm(np.array(player) - np.array(p))
             if not min_dist or dist < min_dist:
                 closest, min_dist = p, dist
+
+        for p in zip(Baneling_x, Baneling_y):
+            dist = np.linalg.norm(np.array(player) - np.array(p))
+            if not baneling_min_dist or dist < baneling_min_dist:
+                closest_baneling, baneling_min_dist = p, dist
+
+        for p in zip(zergling_x, zergling_y):
+            dist = np.linalg.norm(np.array(player) - np.array(p))
+            if not zergling_min_dist or dist < zergling_min_dist:
+                closest_zergling, zergling_min_dist = p, dist
 
     player_relative = obs[0].observation["screen"][_PLAYER_RELATIVE]
     friendly_y, friendly_x = (player_relative == _PLAYER_FRIENDLY).nonzero()
@@ -338,13 +357,9 @@ def marine_action(env, obs, player, action):
 
     elif action == 0 and closest_friend is not None and min_dist_friend < 3:
         # Friendly marine is too close => Sparse!
-
         mean_friend = [int(friendly_x.mean()), int(friendly_x.mean())]
-
         diff = np.array(player) - np.array(closest_friend)
-
         norm = np.linalg.norm(diff)
-
         if norm != 0:
             diff = diff / norm
 
@@ -364,19 +379,24 @@ def marine_action(env, obs, player, action):
             sc2_actions.FunctionCall(_MOVE_SCREEN, [[_NOT_QUEUED], coord])
         ]
 
-    elif action <= 1:  # Attack
+    elif action == 1:  # Attack
 
         # nearest enemy
 
-        coord = closest
+        coord = closest_baneling
 
-        new_action = [
-            sc2_actions.FunctionCall(_ATTACK_SCREEN, [[_NOT_QUEUED], coord])
-        ]
+        new_action = [sc2_actions.FunctionCall(_ATTACK_SCREEN, [[_NOT_QUEUED], coord])]
 
         # print("action : %s Attack Coord : %s" % (action, coord))
+    elif action == 2:  # Attack
 
-    elif action == 2:  # Oppsite direcion from enemy
+        # nearest enemy
+
+        coord = closest_zergling
+
+        new_action = [sc2_actions.FunctionCall(_ATTACK_SCREEN, [[_NOT_QUEUED], coord])]
+
+    elif action == 3:  # Oppsite direcion from enemy
 
         # nearest enemy opposite
 
@@ -403,45 +423,45 @@ def marine_action(env, obs, player, action):
             sc2_actions.FunctionCall(_MOVE_SCREEN, [[_NOT_QUEUED], coord])
         ]
 
-    elif action == 3:  # UP
+    elif action == 4:  # UP
         coord = [player[0], player[1] - 3]
         new_action = [
             sc2_actions.FunctionCall(_MOVE_SCREEN, [[_NOT_QUEUED], coord])
         ]
 
-    elif action == 4:  # DOWN
+    elif action == 5:  # DOWN
         coord = [player[0], player[1] + 3]
         new_action = [
             sc2_actions.FunctionCall(_MOVE_SCREEN, [[_NOT_QUEUED], coord])
         ]
 
-    elif action == 5:  # LEFT
+    elif action == 6:  # LEFT
         coord = [player[0] - 3, player[1]]
         new_action = [
             sc2_actions.FunctionCall(_MOVE_SCREEN, [[_NOT_QUEUED], coord])
         ]
 
-    elif action == 6:  # RIGHT
+    elif action == 7:  # RIGHT
         coord = [player[0] + 3, player[1]]
         new_action = [
             sc2_actions.FunctionCall(_MOVE_SCREEN, [[_NOT_QUEUED], coord])
         ]
-    elif action == 7:  # RIGHT UP
+    elif action == 8:  # RIGHT UP
         coord = [player[0] + 3, player[1]-3]
         new_action = [
             sc2_actions.FunctionCall(_MOVE_SCREEN, [[_NOT_QUEUED], coord])
         ]
-    elif action == 8:  # RIGHT DOWN
+    elif action == 9:  # RIGHT DOWN
         coord = [player[0] + 3, player[1] + 3]
         new_action = [
             sc2_actions.FunctionCall(_MOVE_SCREEN, [[_NOT_QUEUED], coord])
         ]
-    elif action == 9:  # LEFT DOWN
+    elif action == 10:  # LEFT DOWN
         coord = [player[0] - 3, player[1] - 3]
         new_action = [
             sc2_actions.FunctionCall(_MOVE_SCREEN, [[_NOT_QUEUED], coord])
         ]
-    elif action == 10:  # LEFT DOWN
+    elif action == 11:  # LEFT DOWN
         coord = [player[0] - 3, player[1] + 3]
         new_action = [
             sc2_actions.FunctionCall(_MOVE_SCREEN, [[_NOT_QUEUED], coord])
